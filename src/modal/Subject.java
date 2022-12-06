@@ -109,12 +109,28 @@ public class Subject {
 
 		return false;
 	}
+	public boolean isConflitClass(Subject orther) {
+		if (this.nameClass.equals(orther.getNameClass())) {
+			if (this.coure.isConflitCoureNoRoom(orther.getCoure())) {
+				return true;
+			}
+		}
+		if (!this.nameClass.equals(orther.getNameClass())) {
+			if (this.coure.isConflitCoureAndRoom(orther.getCoure())) {
+				return true;
+			}
+			
+		}
+		return false;
+	}
 
 	public boolean isBiggerQuantity() {
 		if (this.getQuantityStudent() > this.coure.getRoom().getNumberComputer())
 			return true;
 		return false;
 	}
+	
+	
 
 	@Override
 	public String toString() {

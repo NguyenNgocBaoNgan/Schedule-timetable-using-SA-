@@ -29,34 +29,6 @@ import modal.Room;
 
 public class readData {
 
-	public static void main(String[] args) throws IOException {
-		List<Subject> listSubjects = readData.read();
-		Random random = new Random();
-		Room room1 = new Room(1, 60);
-		Room room2 = new Room(2, 40);
-		Room room3 = new Room(3, 50);
-		Room room4 = new Room(4, 40);
-		Room room5 = new Room(5, 60);
-		List<Room> listRoom = new ArrayList<>();
-		listRoom.add(room1);
-		listRoom.add(room2);
-		listRoom.add(room3);
-		listRoom.add(room4);
-		listRoom.add(room5);
-		for (Subject item : listSubjects) {
-			int idRoom = random.nextInt(listRoom.size());
-			Coure coure = new Coure(listRoom.get(idRoom));
-			item.setCoure(coure);
-		}
-		Schedule lichHoc = new Schedule(listSubjects);
-		lichHoc.setListRooms(listRoom);
-		
-		Schedule resultSchedule = SimulatedAnnealing.execute(lichHoc);
-		System.out.println("result Schedule H1: "+resultSchedule.getH1() );
-		resultSchedule.display();
-		
-
-	}
 
 	public static List<Subject> read() throws IOException {
 
@@ -93,8 +65,8 @@ public class readData {
 						quantityStudent = 40;
 					}
 
-					Subject monHoc = new Subject(idSubject, nameSubject, teacher, quantityStudent, nameClass);
-					list.add(monHoc);
+					Subject sb = new Subject(idSubject, nameSubject, teacher, quantityStudent, nameClass);
+					list.add(sb);
 
 				}
 			}
@@ -105,6 +77,45 @@ public class readData {
 		wb.close();
 
 		return list;
+	}
+
+	public static void main(String[] args) throws IOException {
+		List<Subject> listSubjects = readData.read();
+		Random random = new Random();
+		Room room1 = new Room(1, 60);
+		Room room2 = new Room(2, 40);
+		Room room3 = new Room(3, 50);
+		Room room4 = new Room(4, 40);
+		Room room5 = new Room(5, 60);
+		List<Room> listRoom = new ArrayList<>();
+		listRoom.add(room1);
+		listRoom.add(room2);
+		listRoom.add(room3);
+		listRoom.add(room4);
+		listRoom.add(room5);
+		for (Subject item : listSubjects) {
+			int idRoom = random.nextInt(listRoom.size());
+			Coure coure = new Coure(listRoom.get(idRoom));
+			item.setCoure(coure);
+		}
+		Schedule schedule = new Schedule(listSubjects);
+		schedule.setListRooms(listRoom);
+		
+		Schedule resultSchedule = SimulatedAnnealing.execute(schedule);
+		System.out.println("result Schedule H1: "+resultSchedule.getH1());
+		System.out.println("result Schedule H2: "+resultSchedule.getH2());
+		/// choose the best schedule
+		Schedule resultBestSchedule = SimulatedAnnealing.findBestSchedule(resultSchedule);
+		System.out.println("result best Schedule H1: "+resultBestSchedule.getH1());
+		System.out.println("result best Schedule H2: "+resultBestSchedule.getH2());
+		System.out.println("===============================================================================");
+		resultBestSchedule.displayTeacher();
+		System.out.println("===============================================================================");
+		resultBestSchedule.displayClass();
+		System.out.println("===============================================================================");
+		resultBestSchedule.displayDay();
+		
+
 	}
 	
 }

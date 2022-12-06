@@ -65,7 +65,27 @@ public class Schedule {
 			if (listSubjects.get(i).isBiggerQuantity()) {
 				heuristic++;
 			}
+			
+			for (int j = i + 1; j < listSubjects.size(); j++) {
+				if (listSubjects.get(i).isConflitTeacher(listSubjects.get(j))) {
+					heuristic++;
+				}
+				if (listSubjects.get(i).isConflitClass(listSubjects.get(j))) {
+					heuristic++;
+				}
+			}
+		}
+		return heuristic;
+
+	}
+	public int getH2() {
+		int heuristic = 0;
+		for (int i = 0; i < listSubjects.size(); i++) {
+		
 			if (moreThanFourADay(listSubjects.get(i).getTeacher(), listSubjects.get(i).getCoure().getDay())) {
+				heuristic++;
+			}
+			if (tooFar(listSubjects.get(i))) {
 				heuristic++;
 			}
 			if (moreThanFourAWeek(listSubjects.get(i).getTeacher())) {
@@ -74,17 +94,13 @@ public class Schedule {
 			if (isSunday(listSubjects.get(i))) {
 				heuristic++;
 			}
-			if (tooFar(listSubjects.get(i))) {
+			if (oneCoure(listSubjects.get(i).getTeacher(), listSubjects.get(i).getCoure().getDay())) {
 				heuristic++;
 			}
-			for (int j = i + 1; j < listSubjects.size(); j++) {
-				if (listSubjects.get(i).isConflitTeacher(listSubjects.get(j))) {
-					heuristic++;
-				}
-			}
+			
 		}
 		return heuristic;
-
+		
 	}
 
 
@@ -100,14 +116,13 @@ public class Schedule {
 	}
 
 // create a random schedule
-	public Schedule selectNextRandomSchedule() {
-		List<Schedule> result = generateAllCandidates();
-		Random rd = new Random();
-		return result.get(rd.nextInt(result.size()));
-
-	}
-
-	public Schedule selectScheduleBest() {
+//	public Schedule selectNextRandomSchedule() {
+//		List<Schedule> result = generateAllCandidates();
+//		Random rd = new Random();
+//		return result.get(rd.nextInt(result.size()));
+//
+//	}
+	public Schedule selectNextScheduleByH1() {
 		List<Schedule> result = generateAllCandidates();
 		Schedule lichHoc = result.get(0);
 
@@ -115,6 +130,21 @@ public class Schedule {
 			if (lichHoc.getH1() > result.get(i).getH1()) {
 				lichHoc = result.get(i);
 			} 
+
+		}
+		return lichHoc;
+	}
+
+	public Schedule selectScheduleBestByH2() {
+		List<Schedule> result = generateAllCandidates();
+		Schedule lichHoc = result.get(0);
+
+		for (int i = 1; i < result.size(); i++) {
+			if(result.get(i).getH1() == 0) {
+				if (lichHoc.getH2() > result.get(i).getH2()) {
+					lichHoc = result.get(i);
+				} 
+			}
 
 		}
 		return lichHoc;
@@ -134,7 +164,7 @@ public class Schedule {
 		return false;
 	}
 // have coure in a day
-	public boolean haveCoure(String teacherName, int day) {
+	private boolean haveCoure(String teacherName, int day) {
 		int count = 0;
 		for (Subject sb : listSubjects) {
 			if (sb.getTeacher().equals(teacherName) && sb.getCoure().getDay() == day) {
@@ -165,7 +195,7 @@ public class Schedule {
 	public boolean tooFar(Subject orther) {
 		for (Subject sb : listSubjects) {
 			if (sb.getTeacher().equals(orther.getTeacher()) && sb.getCoure().getDay() == orther.getCoure().getDay()) {
-				if (Math.abs(sb.getCoure().getBeginTime() - orther.getCoure().getBeginTime()) >= 2) {
+				if (Math.abs(sb.getCoure().getBeginTime() - orther.getCoure().getBeginTime()) > 2) {
 					return true;
 				}
 			}
@@ -178,6 +208,24 @@ public class Schedule {
 	//// NOT SUNDAY
 	public boolean isSunday(Subject sb) {
 		if (sb.getCoure().getDay() == 8)
+			return true;
+		return false;
+	}
+	private int countCoure(String teacherName, int day) {
+		int count = 0;
+		for (Subject sb : listSubjects) {
+			if (sb.getTeacher().equals(teacherName) && sb.getCoure().getDay() == day) {
+				count++;
+			}
+		}
+		
+		return count;
+	}
+	
+	// one coure in a day
+	public boolean oneCoure(String teacherName, int day) {
+		
+		if (countCoure(teacherName, day) == 1)
 			return true;
 		return false;
 	}
@@ -202,9 +250,9 @@ public class Schedule {
 
 		@Override
 		public int compare(Subject o1, Subject o2) {
-			if (o1.getTeacher().compareTo(o2.getTeacher()) != 0) {
-				return o1.getTeacher().compareTo(o2.getTeacher());
-			}
+//			if (o1.getTeacher().compareTo(o2.getTeacher()) != 0) {
+//				return o1.getTeacher().compareTo(o2.getTeacher());
+//			}
 			if (o1.getCoure().getDay() - o2.getCoure().getDay() != 0) {
 				return o1.getCoure().getDay() - o2.getCoure().getDay();
 			}
@@ -217,7 +265,7 @@ public class Schedule {
 
 	};
 
-	public void display() {
+	public void displayDay() {
 		Collections.sort(listSubjects, DESCOMPARATOR);
 		for (int i = 2; i < 9; i++) {
 			System.out.println("================================================================ DAY " + i
@@ -236,6 +284,60 @@ public class Schedule {
 					System.out.println(" ");
 				}
 
+			}
+		}
+	}
+	public void displayTeacher() {
+		Collections.sort(listSubjects, DESCOMPARATOR);
+		List<String> gvList = new ArrayList<>();
+		for(Subject sb: listSubjects) {
+			if(!gvList.contains(sb.getTeacher())) gvList.add(sb.getTeacher());
+		}
+		for (int i = 0; i < gvList.size(); i++) {
+			System.out.println("================================================================ " + gvList.get(i)
+					+ " =========================================================");
+			System.out.printf("%10s %35s %15s %15s %10s %10s %10s %10s", "ID Sub", "nameSub", "teacher", "class",
+					"day","begin", "room", "maximum");
+			System.out.println(" ");
+			for (Subject subject : listSubjects) {
+				
+				if (subject.getTeacher().equals(gvList.get(i))) {
+					System.out.printf("%10s %35s %15s %15s %10s %10s %10s %10s", subject.getIdSubject(),
+							subject.getNameSubject(), subject.getTeacher(), subject.getNameClass()
+							,subject.getCoure().getDay(),
+							 subject.getCoure().getBeginTime(),
+							"lab " + subject.getCoure().getRoom().getNameRoom(),
+							subject.getCoure().getRoom().getNumberComputer());
+					System.out.println(" ");
+				}
+				
+			}
+		}
+	}
+	public void displayClass() {
+		Collections.sort(listSubjects, DESCOMPARATOR);
+		List<String> gvList = new ArrayList<>();
+		for(Subject sb: listSubjects) {
+			if(!gvList.contains(sb.getNameClass())) gvList.add(sb.getNameClass());
+		}
+		for (int i = 0; i < gvList.size(); i++) {
+			System.out.println("================================================================ " + gvList.get(i)
+			+ " =========================================================");
+			System.out.printf("%10s %35s %15s %15s %10s %10s %10s %10s", "ID Sub", "nameSub", "teacher", "class",
+					"day","begin", "room", "maximum");
+			System.out.println(" ");
+			for (Subject subject : listSubjects) {
+				
+				if (subject.getNameClass().equals(gvList.get(i))) {
+					System.out.printf("%10s %35s %15s %15s %10s %10s %10s %10s", subject.getIdSubject(),
+							subject.getNameSubject(), subject.getTeacher(), subject.getNameClass()
+							,subject.getCoure().getDay(),
+							subject.getCoure().getBeginTime(),
+							"lab " + subject.getCoure().getRoom().getNameRoom(),
+							subject.getCoure().getRoom().getNumberComputer());
+					System.out.println(" ");
+				}
+				
 			}
 		}
 	}
